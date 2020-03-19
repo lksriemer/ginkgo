@@ -29,3 +29,97 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************<GINKGO LICENSE>*******************************/
+
+// Copy-Pasted code from MAGMA:
+
+//#if (CUDA_VERSION >= 7000) // only for cuda>6000
+
+/*
+constexpr int MaxBlockSize = 32;
+
+
+template <int block_size>
+__device__ void
+magma_zlowerisai_regs_inv_kernel(
+magma_int_t num_rows,
+const magma_index_t * __restrict__ Arow,
+const magma_index_t * __restrict__ Acol,
+const magmaDoubleComplex * __restrict__ Aval,
+magma_index_t *Mrow,
+magma_index_t *Mcol,
+magmaDoubleComplex *Mval )
+{
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
+    int tid = threadIdx.x;
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y +
+threadIdx.y;
+
+    if( tid >= block_size )
+        return;
+
+    if( row >= num_rows )
+        return;
+
+    // only if within the size
+    int mstart = Mrow[ row ];
+    int mlim = Mrow[ row ]-1;
+
+    // NOTE: `dA` is not in registers since it is accessed `dA[idx]` below,
+    //       where idx cannot be known at compile time
+    //       ---> `dA` is stored in local memory
+
+    magmaDoubleComplex rB;                // registers for trsv
+    magmaDoubleComplex dA[ block_size ];  // registers for trisystem
+    magmaDoubleComplex rA;
+
+    // set dA to 0
+    #pragma unroll
+    for( int j = 0; j < block_size; j++ ){
+        dA[ j ] = MAGMA_Z_ZERO;
+    }
+
+    // generate the triangular systems
+    int t = Mcol[ mstart + tid ];
+    int k = Arow[ t+1 ] - 1;
+    int alim = Arow[ t ]-1;
+    int l = Mrow[ row+1 ]-1;
+    int idx = block_size-1;
+    while( k > alim && l > mlim  ){ // stop once this column is done
+        int mcol =  Mcol[ l ];
+        int acol = Acol[k];
+        if( mcol == acol ){ //match
+            dA[ idx ] = Aval[ k ];
+            k--;
+            l--;
+            idx--;
+        } else if( acol > mcol ){// need to check next element
+            k--;
+        } else { // element does not exist, i.e. l < LC.col[k]
+            l--; // check next elment in the sparsity pattern
+            idx--; // leave this element equal zero
+        }
+    }
+
+    // second: solve the triangular systems - in registers
+    // we know how RHS looks like
+    rB = ( tid == 0 ) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+
+        // Triangular solve in regs.
+    #pragma unroll
+    for (int k = 0; k < block_size; k++)
+    {
+        rA = dA[ k ];
+        if (k%block_size == tid)
+            rB /= rA;
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%block_size);
+        if ( tid > k)
+            rB -= (top*rA);
+    }
+
+    // Drop B to dev memory - in ISAI preconditioner M
+    Mval[ mstart + tid ] = rB;
+
+#endif
+
+}
+*/
