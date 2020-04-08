@@ -117,7 +117,7 @@ build/cuda90/gcc/all/debug/shared:
     BUILD_HIP: "ON"
     BUILD_TYPE: Debug
     EXTRA_CMAKE_FLAGS: &cuda_flags
-      "-DGINKGO_CUDA_ARCHITECTURES=35 -DCMAKE_CUDA_HOST_COMPILER=${CXX_COMPILER}"
+      "-DGINKGO_CUDA_ARCHITECTURES=35 -DCMAKE_CUDA_HOST_COMPILER=$(which ${CXX_COMPILER})"
   tags:
     - private_ci
     - cuda
